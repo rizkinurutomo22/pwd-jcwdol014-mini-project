@@ -1,3 +1,5 @@
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import Carousel from '@/components/Carousel';
 import EventGrid from '@/components/EventGrid';
 
@@ -215,15 +217,19 @@ const promotionEvents = [
 
 export default function Home() {
   return (
-    <div id="home-page" className="bg-gradient-main">
-      <div className="pb-10">
-        <Carousel items={carouselItems} />
+    <>
+      <Header />
+      <div id="home-page" className="bg-gradient-main">
+        <div className="pb-10">
+          <Carousel items={carouselItems} />
+        </div>
+        <div className="px-10 pb-10 md:px-20">
+          <EventGrid events={upcomingEvents} h={'Upcoming Events'} />
+          <EventGrid events={premiereEvents} h={'Premiere Events'} />
+          <EventGrid events={promotionEvents} h={'Promotion Events'} />
+        </div>
       </div>
-      <div className="px-10 pb-10 md:px-20">
-        <EventGrid events={upcomingEvents} h={'Upcoming Events'} />
-        <EventGrid events={premiereEvents} h={'Premiere Events'} />
-        <EventGrid events={promotionEvents} h={'Promotion Events'} />
-      </div>
-    </div>
+      <Footer />
+    </>
   );
 }

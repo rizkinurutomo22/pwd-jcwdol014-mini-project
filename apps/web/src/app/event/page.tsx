@@ -1,64 +1,55 @@
 'use client';
 
-// src/apps/events/page.tsx
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 
 interface Event {
   id: string;
   title: string;
-  date: string;
+  description: string;
   location: string;
+  date: string;
 }
 
-const Home: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+const EventDetails = () => {
+  const router = useRouter();
+  const { id } = router.query;
+  const [event, setEvent] = useState<Event | null>(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      // Contoh fetch data statis, bisa diganti dengan fetching dari API
-      const events: Event[] = [
-        {
-          id: '1',
-          title: 'Concert A',
-          date: '2024-08-20',
-          location: 'Stadium XYZ',
-        },
-        {
-          id: '2',
-          title: 'Festival B',
-          date: '2024-09-10',
-          location: 'Park ABC',
-        },
-      ];
-      setEvents(events);
-      setLoading(false);
+    const fetchEvent = async () => {
+      if (id && typeof id === 'string') {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/api/events/${id}`,
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch event');
+          }
+          const data = await response.json();
+          setEvent(data.event);
+        } catch (error) {
+          console.error('Error fetching event:', error);
+        }
+      }
     };
-    fetchEvents();
-  }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+    fetchEvent();
+  }, [id]);
+
+  if (!event) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1 className="mb-4 text-2xl font-bold">Upcoming Events</h1>
-      <ul>
-        {events.map((event) => (
-          <li key={event.id} className="mb-2">
-            <Link
-              href={`/events/${event.id}`}
-              className="text-blue-500 hover:underline"
-            >
-              {event.title} - {event.date} - {event.location}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="container mx-auto px-4">
+      <h1 className="mb-4 text-2xl font-bold">{event.title}</h1>
+      <p>{event.description}</p>
+      <p>Location: {event.location}</p>
+      <p>Date: {event.date}</p>
+      <button className="mt-4 rounded bg-purple-600 px-4 py-2 text-white">
+        Buy Tickets
+      </button>
     </div>
   );
 };
 
-export default Home;
+export default EventDetails;
