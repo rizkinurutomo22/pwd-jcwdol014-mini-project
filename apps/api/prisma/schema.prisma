@@ -26,6 +26,8 @@ model User {
   discount          Discount?  @relation("DiscountToUser")  
   referralsSent     Referral[] @relation("ReferralsSent")
   referralsReceived Referral[] @relation("ReferralsReceived")
+  purchases         Purchase[] @relation("UserPurchases")
+  attendees         Attendee[] @relation("UserAttendees")
 
   @@map("users")
 }
@@ -72,6 +74,37 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  purchases   Purchase[] @relation("EventPurchases")
+  attendees   Attendee[] @relation("EventAttendees")
+
   @@map("events")
 }
 
+model Purchase {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  eventId      Int
+  totalTickets Int       @default(0)
+  totalPrice   Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation("UserPurchases", fields: [userId], references: [id])
+  event        Event     @relation("EventPurchases", fields: [eventId], references: [id])
+  attendees    Attendee[]
+
+  @@map("purchases")
+}
+
+model Attendee {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  eventId    Int
+  purchaseId Int
+  createdAt  DateTime @default(now())
+
+  user      User     @relation("UserAttendees", fields: [userId], references: [id])
+  event     Event    @relation("EventAttendees", fields: [eventId], references: [id])
+  purchase  Purchase @relation(fields: [purchaseId], references: [id])
+
+  @@map("attendees")
+}

@@ -5,12 +5,14 @@ import express, {
   Request,
   Response,
   NextFunction,
-  Router,
 } from 'express';
 import cors from 'cors';
 import { PORT } from './config';
 import authRouter from './routers/auth.router';
 import userRouter from './routers/user.router';
+import purchaseRouter from './routers/purchase.router';
+import cron from './jobs/cleanupExpiredData';
+import { accessValidation } from './middlewares/accessValidation';
 
 export default class App {
   private app: Express;
@@ -26,6 +28,7 @@ export default class App {
     this.app.use(cors());
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
+    cron;
   }
 
   private handleError(): void {
@@ -57,6 +60,7 @@ export default class App {
     });
 
     this.app.use('/api/auth', authRouter);
+    this.app.use('/api', accessValidation, purchaseRouter);
     this.app.use('/api', userRouter);
   }
 

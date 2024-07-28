@@ -1,8 +1,5 @@
-import { Router, Request, Response } from 'express';
-import prisma from '@/prisma';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { body, validationResult } from 'express-validator';
+import { Router } from 'express';
+import { body } from 'express-validator';
 import { register, login } from '../controllers/auth.controller';
 
 const router = Router();
