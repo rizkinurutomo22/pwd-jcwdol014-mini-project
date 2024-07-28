@@ -11,11 +11,17 @@ const Pagination: React.FC<PaginationProps> = ({ page, setPage }) => {
 
   return (
     <div className="mt-4 flex justify-center">
-      <button onClick={handlePrev} className="mr-2 border p-2">
-        Previous
+      <button
+        onClick={handlePrev}
+        className="mr-2 border bg-slate-200 px-4 py-0 text-slate-500 hover:bg-slate-100 hover:text-black"
+      >
+        Prev
       </button>
       <span className="p-2">{page}</span>
-      <button onClick={handleNext} className="ml-2 border p-2">
+      <button
+        onClick={handleNext}
+        className="ml-2 border bg-slate-200 px-4 py-0 text-slate-500 hover:bg-slate-100 hover:text-black"
+      >
         Next
       </button>
     </div>

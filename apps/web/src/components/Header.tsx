@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
-
 import ListMenu from './template/ListMenu';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faXmark, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -11,7 +11,8 @@ function Header() {
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const searchModalRef = useRef<HTMLDivElement>(null);
 
   const toggleNavbar = () => {
@@ -24,16 +25,22 @@ function Header() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    // Update suggestions based on search query
-    setSuggestions(
-      e.target.value ? ['Suggestion 1', 'Suggestion 2', 'Suggestion 3'] : [],
-    );
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Lakukan aksi pencarian di sini
-    console.log('Searching for:', searchQuery);
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/events/search?name=${searchQuery}`,
+      );
+      setSuggestions(response.data.events);
+    } catch (error) {
+      console.error('Error fetching search results:', error);
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeSearch = () => {
@@ -66,19 +73,20 @@ function Header() {
   return (
     <header className="sticky top-0 z-50 h-20 place-content-center bg-white px-10 py-0 shadow-sm md:px-20">
       <div>
-        <nav className="mb-1 flex justify-between">
+        <nav className="mb-1 flex items-center justify-between">
           <Link
             href={'/'}
             className="flex items-center gap-4 text-black hover:text-black"
           >
-            <h1 className="mx-0 my-0 text-4xl font-bold">
-              <span className="text-purple-600">eventme</span>
+            <h1 className="mx-0 my-0 text-3xl font-bold md:text-4xl">
+              <span className="hidden text-purple-600 md:block">eventme</span>
+              <span className="block text-purple-600 md:hidden">em</span>
             </h1>
           </Link>
-          <div className="nav-action-wrapper mx-16 flex items-center gap-16 text-xl">
-            <ul className="hidden h-full items-center xl:flex xl:gap-16">
-              <ListMenu />
-            </ul>
+          <ul className="hidden xl:flex xl:gap-16">
+            <ListMenu />
+          </ul>
+          <div className="flex items-center gap-4">
             <button
               onClick={toggleSearch}
               className="flex items-center bg-slate-100 px-4 text-purple-600 hover:bg-white md:px-8 lg:px-8"
@@ -90,24 +98,22 @@ function Header() {
               />
               <span className="hidden md:inline">Search</span>
             </button>
-            <div className="xl:hidden">
-              <button
-                onClick={toggleNavbar}
-                className="w-16 bg-slate-100 text-sm text-purple-600 hover:bg-white"
-              >
-                {isNavbarOpen ? (
-                  <FontAwesomeIcon icon={faXmark} size="lg" />
-                ) : (
-                  <FontAwesomeIcon icon={faBars} size="lg" />
-                )}
-              </button>
-            </div>
-          </div>
-          <Link href={'/login'}>
-            <button className="bg-purple-600 px-6 text-white transition duration-300 ease-in-out hover:scale-105 hover:bg-purple-500">
-              Login
+            <button
+              onClick={toggleNavbar}
+              className="block w-16 bg-slate-100 text-sm text-purple-600 hover:bg-white xl:hidden"
+            >
+              {isNavbarOpen ? (
+                <FontAwesomeIcon icon={faXmark} size="lg" />
+              ) : (
+                <FontAwesomeIcon icon={faBars} size="lg" />
+              )}
             </button>
-          </Link>
+            <Link href={'/login'}>
+              <button className="bg-purple-600 px-6 text-white transition duration-300 ease-in-out hover:scale-105 hover:bg-purple-500">
+                Login
+              </button>
+            </Link>
+          </div>
         </nav>
       </div>
 
@@ -142,14 +148,26 @@ function Header() {
                   Search
                 </button>
               </form>
+              {loading && (
+                <div className="mt-2 text-center text-purple-600">
+                  Loading...
+                </div>
+              )}
               {suggestions.length > 0 && (
                 <ul className="mt-2 rounded-lg border border-gray-300 bg-white shadow-lg">
                   {suggestions.map((suggestion, index) => (
-                    <li key={index} className="px-4 py-2 hover:bg-gray-200">
-                      {suggestion}
-                    </li>
+                    <Link key={index} href={`/event/${suggestion.id}`}>
+                      <li className="px-4 py-2 hover:bg-gray-200">
+                        {suggestion.name}
+                      </li>
+                    </Link>
                   ))}
                 </ul>
+              )}
+              {suggestions.length === 0 && !loading && (
+                <div className="mt-2 text-center text-gray-600">
+                  No events found
+                </div>
               )}
             </div>
           </div>
@@ -158,13 +176,11 @@ function Header() {
 
       {/* Navbar Dropdown */}
       <div
-        className={`absolute left-0 right-0 top-16 bg-gray-100 opacity-90 transition-transform duration-300 md:hidden lg:hidden ${
+        className={`absolute left-0 right-0 top-20 bg-gray-100 opacity-90 transition-transform duration-300 xl:hidden ${
           isNavbarOpen ? 'block' : 'hidden'
         }`}
       >
-        <nav
-          className={`md:hidden lg:hidden ${isNavbarOpen ? 'block' : 'hidden'}`}
-        >
+        <nav>
           <ul className="grid w-full gap-3 bg-gray-100 p-4">
             <ListMenu />
           </ul>

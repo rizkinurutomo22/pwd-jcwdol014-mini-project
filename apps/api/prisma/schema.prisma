@@ -16,13 +16,43 @@ model Event {
   type        String   @default("free")
   price       Int      @default(0)
   seat        Int      @default(10)
+  premiere    Boolean  @default(false)
   location    String
+  category    String
   dateTime    DateTime
   thumbnail   String
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-   @@map("events")
+  @@map("events")
 }
 
+model Promo {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  event_name    String
+  org_id        Int
+  org_name      String
+  referal_code  String
+  discout       Int
+  max_uses      Int      @default(1)
+  remaining     Int
+  valid_until   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("promos")
+}
+
+model Review {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  reviewed_by   Int
+  rating        Int
+  review        String
+  suggestions   String
+  createdAt     DateTime @default(now())
+
+  @@map("reviews")
+}

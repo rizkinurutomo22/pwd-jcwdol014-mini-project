@@ -11,17 +11,34 @@ import {
 
 interface Event {
   id: string;
-  title: string;
-  imageUrl: string;
-  description: string;
+  name: string;
+  category: string;
+  thumbnail: string;
+  location: string;
+  dateTime: string;
 }
 
 interface EventGridProps {
   events: Event[];
   h: string;
+  loading: Boolean;
 }
 
-const EventGrid: React.FC<EventGridProps> = ({ events, h }) => {
+const EventGrid: React.FC<EventGridProps> = ({ events, h, loading }) => {
+  if (loading || !events.length)
+    return (
+      <div className="col-span-full py-52 text-center text-3xl font-bold text-gray-400">
+        <p className="mb-3">Loading... Please wait</p>
+      </div>
+    );
+
+  if (!loading && !events.length)
+    return (
+      <div className="col-span-full py-52 text-center text-3xl font-bold text-gray-400">
+        <p className="mb-3">404. Event not found</p>
+      </div>
+    );
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
@@ -70,16 +87,26 @@ const EventGrid: React.FC<EventGridProps> = ({ events, h }) => {
             <Link href={`/event/${event.id}`}>
               <div className="relative h-96 w-full overflow-hidden rounded-xl shadow-lg">
                 <Image
-                  src={event.imageUrl}
-                  alt={event.title}
+                  src={`/images/${event.category}/${event.thumbnail}`}
+                  alt={event.name}
                   fill
                   sizes="25vw"
                   className="object-cover duration-200 ease-in hover:scale-105"
                 />
               </div>
               <div className="relative overflow-hidden rounded-xl p-4">
-                <h2 className="mb-2 text-xl font-semibold">{event.title}</h2>
-                <p className="text-gray-600">{event.description}</p>
+                <h2 className="mb-2 truncate text-xl font-semibold">
+                  {event.name}
+                </h2>
+                <p className="truncate text-gray-600">{event.location}</p>
+                <p className="text-gray-600">
+                  {new Date(event.dateTime).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
               </div>
             </Link>
           </div>

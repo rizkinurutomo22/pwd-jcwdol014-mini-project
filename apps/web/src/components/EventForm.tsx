@@ -1,31 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from '@/components/template/Input';
 import Select from '@/components/template/Select';
 import DatePicker from '@/components/template/DatePicker';
 import TimePicker from '@/components/template/TimePicker';
 import TextArea from '@/components/template/TextArea';
+import axios from 'axios';
 
-const eventTypes = ['Free Event', 'Paid Event'];
+const eventTypes = ['free', 'paid'];
+const eventCategory = ['Unknown', 'Music', 'Stand Up', 'Festival'];
 
 const EventForm = () => {
   const [eventName, setEventName] = useState('');
-  const [price, setPrice] = useState('');
+  const [price, setPrice] = useState<number | string>('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [availableSeats, setAvailableSeats] = useState('');
+  const [availableSeats, setAvailableSeats] = useState<number | string>('');
   const [ticketType, setTicketType] = useState(eventTypes[0]);
+  const [category, setCategory] = useState(eventCategory[0]);
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPromotion, setShowPromotion] = useState(false);
   // Promotion
-  const [discountValue, setDiscountValue] = useState('');
-  const [maxUses, setMaxUses] = useState('');
+  const [discountValue, setDiscountValue] = useState<number | string>('');
+  const [maxUses, setMaxUses] = useState<number | string>('');
   const [referralCode, setReferralCode] = useState('');
   const [validUntil, setValidUntil] = useState('');
+
+  useEffect(() => {
+    if (ticketType === 'free') {
+      setPrice(0);
+    }
+  }, [ticketType]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,6 +63,14 @@ const EventForm = () => {
       );
       return false;
     }
+    if (ticketType === 'free' && Number(price) !== 0) {
+      setError('Price must be 0 for free events');
+      return false;
+    }
+    if (Number(maxUses) > Number(availableSeats)) {
+      setError('Max uses cannot be greater than available seats');
+      return false;
+    }
     if (validUntil && new Date(validUntil) > new Date(date)) {
       setError('Valid until date cannot be later than the event date');
       return false;
@@ -61,25 +78,109 @@ const EventForm = () => {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Menggabungkan date dan time ke format ISO
+    const eventDateTime = new Date(`${date}T${time}`).toISOString();
+
     const eventData = {
-      eventName,
-      price,
-      date,
-      time,
+      name: eventName,
+      type: ticketType,
+      price: Number(price),
+      seat: Number(availableSeats),
       location,
+      category,
+      dateTime: eventDateTime,
+      thumbnail: image ? image.name : '',
       description,
-      availableSeats,
-      ticketType,
-      image,
-      promotion: showPromotion
-        ? { discountValue, maxUses, referralCode, validUntil }
-        : null,
+      updatedAt: new Date().toISOString(),
     };
-    console.log('Event Data:', eventData);
+
+    let message = '';
+
+    try {
+      const eventResponse = await axios.post(
+        'http://localhost:8000/api/event-management/create-event',
+        eventData,
+      );
+
+      if (eventResponse.status !== 201) {
+        message = 'Failed to create event';
+        throw new Error('Failed to create event');
+      }
+
+      message = 'Event created successfully';
+      console.log('Event created successfully');
+
+      // Reset state input setelah submit berhasil
+      setEventName('');
+      setPrice('');
+      setDate('');
+      setTime('');
+      setLocation('');
+      setDescription('');
+      setAvailableSeats('');
+      setTicketType(eventTypes[0]);
+      setCategory(eventCategory[0]);
+      setImage(null);
+      setShowPromotion(false);
+      setDiscountValue('');
+      setMaxUses('');
+      setReferralCode('');
+      setValidUntil('');
+      setError(null);
+    } catch (error) {
+      message = 'Failed to create event';
+      console.error('Error creating event: ', error);
+      setError('Failed to create event');
+      alert(message);
+      return;
+    }
+
+    // Handle promotion data
+    if (
+      showPromotion &&
+      (discountValue || maxUses || referralCode || validUntil)
+    ) {
+      // Menggabungkan validUntil ke format ISO
+      const promoValidUntil = new Date(`${validUntil}`).toISOString();
+
+      const promotionData = {
+        event_id: 1, // Assuming eventResponse returns the created event ID
+        event_name: eventName,
+        org_id: 8,
+        org_name: '',
+        referal_code: referralCode,
+        discout: Number(discountValue),
+        max_uses: Number(maxUses),
+        remaining: Number(maxUses),
+        valid_until: promoValidUntil,
+        updatedAt: new Date().toISOString(),
+      };
+
+      try {
+        const promoResponse = await axios.post(
+          'http://localhost:8000/api/event-management/create-promotion',
+          promotionData,
+        );
+
+        if (promoResponse.status !== 201) {
+          message += ' but failed to create promotion';
+          throw new Error('Failed to create promotion');
+        }
+
+        message += ' and promotion created successfully';
+        console.log('Promotion created successfully');
+      } catch (error) {
+        message += ' but failed to create promotion';
+        console.error('Error creating promotion: ', error);
+        setError('Failed to create promotion');
+      }
+    }
+
+    alert(message);
   };
 
   return (
@@ -104,6 +205,7 @@ const EventForm = () => {
         type="number"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
+        disabled={ticketType === 'free'}
       />
       <Input
         label="Available Seats"
@@ -118,6 +220,13 @@ const EventForm = () => {
         type="text"
         value={location}
         onChange={(e) => setLocation(e.target.value)}
+      />
+      <Select
+        label="Event Category"
+        name="category"
+        options={eventCategory}
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
       />
       <DatePicker
         label="Event Date"
@@ -141,7 +250,6 @@ const EventForm = () => {
           onChange={handleImageChange}
           className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
         />
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         {image && (
           <div className="mt-4">
             <img
@@ -163,9 +271,9 @@ const EventForm = () => {
       <div className="flex items-center">
         <label
           htmlFor="input-promotion-checkbox"
-          className="text-md mr-4 italic text-purple-400"
+          className="text-md mr-4 text-purple-400"
         >
-          Add Promotion
+          <span className="text-semibold italic">Add Promotion</span>
         </label>
         <input
           id="input-promotion-checkbox"
@@ -207,9 +315,11 @@ const EventForm = () => {
         </>
       )}
       <br />
+      {error && <p className="text-semibold mt-2 text-red-600">{error}</p>}
+      <br />
       <button
         type="submit"
-        className="mb-10 w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-500"
+        className="mb-10 w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
       >
         Create Event
       </button>

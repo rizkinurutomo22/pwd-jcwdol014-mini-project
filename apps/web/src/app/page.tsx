@@ -1,7 +1,11 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Carousel from '@/components/Carousel';
 import EventGrid from '@/components/EventGrid';
+import axios from 'axios';
 
 const carouselItems = [
   {
@@ -216,6 +220,25 @@ const promotionEvents = [
 ];
 
 export default function Home() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:8000/api/events');
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   return (
     <>
       <Header />
@@ -224,9 +247,9 @@ export default function Home() {
           <Carousel items={carouselItems} />
         </div>
         <div className="px-10 pb-10 md:px-20">
-          <EventGrid events={upcomingEvents} h={'Upcoming Events'} />
-          <EventGrid events={premiereEvents} h={'Premiere Events'} />
-          <EventGrid events={promotionEvents} h={'Promotion Events'} />
+          <EventGrid events={events} h={'Upcoming Events'} loading={loading} />
+          {/* <EventGrid events={premiereEvents} h={'Premiere Events'} /> */}
+          {/* <EventGrid events={promotionEvents} h={'Promotion Events'} /> */}
         </div>
       </div>
       <Footer />

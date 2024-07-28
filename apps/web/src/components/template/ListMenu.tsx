@@ -7,16 +7,16 @@ function ListMenu() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const links = [
-    { href: '/upcoming-event', text: 'Upcoming' },
-    { href: '/premiere-event', text: 'Premiere' },
+    { href: '/all-event?label=upcoming&page=1', text: 'Upcoming' },
+    { href: '/all-event?label=premiere&page=1', text: 'Premiere' },
     {
       href: '/all-event',
       text: 'Category',
       dropdown: true,
       sublinks: [
-        { href: '/music', text: 'Music' },
-        { href: '/stand-up', text: 'Stand Up' },
-        { href: '/festival', text: 'Festival' },
+        { href: '/all-event?category=Music&page=1', text: 'Music' },
+        { href: '/all-event?category=Stand+Up&page=1', text: 'Stand Up' },
+        { href: '/all-event?category=Festival&page=1', text: 'Festival' },
       ],
     },
   ];
@@ -40,7 +40,7 @@ function ListMenu() {
         >
           <Link
             href={link.href}
-            className="flex items-center text-base font-semibold hover:text-purple-600"
+            className="flex items-center justify-center text-base font-semibold hover:text-purple-600"
           >
             {link.text}
             {link.dropdown && (

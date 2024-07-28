@@ -12,9 +12,10 @@ export class EventRouter {
   }
 
   private initializeRoutes(): void {
-    this.router.get('/', this.eventController.getEventData);
+    this.router.get('/search', this.eventController.searchEvents);
+    this.router.get('/filter', this.eventController.getEventDataByFilter);
     this.router.get('/:id', this.eventController.getEventDataById);
-    // this.router.post('/', this.eventController.createEventData);
+    this.router.get('/', this.eventController.getEventData);
   }
 
   getRouter(): Router {

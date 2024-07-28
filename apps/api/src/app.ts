@@ -10,6 +10,8 @@ import express, {
 import cors from 'cors';
 import { PORT } from './config';
 import { EventRouter } from './routers/event.router';
+import { DashboardRouter } from './routers/dashboard.router';
+import { ReviewRouter } from './routers/review.router';
 
 export default class App {
   private app: Express;
@@ -52,12 +54,16 @@ export default class App {
 
   private routes(): void {
     const eventRouter = new EventRouter();
+    const dashboardRouter = new DashboardRouter();
+    const reviewRouter = new ReviewRouter();
 
     this.app.get('/api', (req: Request, res: Response) => {
       res.send(`Hello, Purwadhika Student API!`);
     });
 
     this.app.use('/api/events', eventRouter.getRouter());
+    this.app.use('/api/review', reviewRouter.getRouter());
+    this.app.use('/api/event-management', dashboardRouter.getRouter());
   }
 
   public start(): void {
