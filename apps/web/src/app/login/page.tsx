@@ -1,20 +1,29 @@
 // pages/register.tsx
 
 import LoginForm from '../../components/LoginForm';
+import Link from 'next/link';
 
-const Register = () => {
+const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Login
-          </h2>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md">
+        <h2 className="text-center text-2xl font-bold">Login</h2>
+
         <LoginForm />
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Dont have an account?{' '}
+            <Link
+              href={'/register'}
+              className="text-purple-600 hover:underline"
+            >
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Register;
+export default Login;

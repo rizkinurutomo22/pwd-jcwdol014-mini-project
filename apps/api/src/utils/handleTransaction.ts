@@ -11,7 +11,7 @@ export async function handleTransaction(
       where: { id: userId },
       include: {
         discount: true,
-        referralsReceived: true,
+        referralsSent: true,
       },
     });
 
@@ -28,7 +28,7 @@ export async function handleTransaction(
     const discountPercent = user.discount ? user.discount.discount : 0;
 
     // Hitung total poin yang diterima dari referrals
-    const totalPoints = user.referralsReceived.reduce(
+    const totalPoints = user.referralsSent.reduce(
       (acc, referral) => acc + referral.points,
       0,
     );
@@ -38,7 +38,7 @@ export async function handleTransaction(
     const priceAfterDiscount = event.price - discountAmount;
 
     // Hitung harga akhir setelah mengurangi poin
-    const pointsValue = totalPoints; // Misalnya 1 poin = 1 unit mata uang
+    const pointsValue = totalPoints;
     const finalPricePerTicket = priceAfterDiscount - pointsValue;
     const finalTotalPrice = finalPricePerTicket * totalTickets;
 
@@ -55,7 +55,7 @@ export async function handleTransaction(
     // Hapus poin yang telah digunakan
     await prisma.referral.deleteMany({
       where: {
-        referredUserId: userId,
+        referrerId: userId,
         points: {
           gt: 0,
         },
@@ -66,7 +66,7 @@ export async function handleTransaction(
     if (user.discount) {
       await prisma.discount.delete({
         where: {
-          id: user.discount.id,
+          userId: user.id,
         },
       });
     }

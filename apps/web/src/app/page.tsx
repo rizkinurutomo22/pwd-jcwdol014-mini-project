@@ -1,35 +1,69 @@
-// app/page.tsx
+'use client';
 
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import Carousel from '@/components/Carousel';
+import EventGrid from '@/components/EventGrid';
+import axios from 'axios';
 
-const LandingPage = () => {
+const carouselItems = [
+  {
+    src: '/images/Music/55a3c49f5cc6e8a7d625caf42af8fa0b.jpg',
+    link: '/event/music/aaa',
+  },
+  {
+    src: '/images/Music/7bff21e71989d391d34c05cb9d36948d.jpg',
+    link: '/event/music/bbb',
+  },
+  {
+    src: '/images/Music/0fb517cc9cf2b7db7c09c6203b3913ec.jpg',
+    link: '/event/music/ccc',
+  },
+  {
+    src: '/images/Music/572b5a8fec8a603acf6eaa6ea358f49c.jpg',
+    link: '/event/music/ddd',
+  },
+  {
+    src: '/images/Music/afac2cc0ed5619aaccbcb997371d71c7.jpg',
+    link: '/event/music/eee',
+  },
+];
+
+export default function Home() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:8000/api/events');
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-12">
-      <h1 className="text-5xl font-bold text-gray-800 mb-8">
-        Welcome to Event Manager
-      </h1>
-      <div>
-        <Link
-          href="/register"
-          className="inline-block bg-blue-500 text-white text-lg py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition duration-300 mr-6"
-        >
-          Register
-        </Link>
-        <Link
-          href="/login"
-          className="inline-block bg-green-500 text-white text-lg py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition duration-300 mr-6"
-        >
-          Login
-        </Link>
-        <Link
-          href="/all-events"
-          className="inline-block bg-purple-500 text-white text-lg py-3 px-6 rounded-lg shadow-md hover:bg-purple-600 transition duration-300"
-        >
-          All Events
-        </Link>
+    <>
+      <Header />
+      <div id="home-page" className="bg-gradient-main">
+        <div className="pb-10">
+          <Carousel items={carouselItems} />
+        </div>
+        <div className="px-10 pb-10 md:px-20">
+          <EventGrid events={events} h={'Upcoming Events'} loading={loading} />
+          {/* <EventGrid events={premiereEvents} h={'Premiere Events'} /> */}
+          {/* <EventGrid events={promotionEvents} h={'Promotion Events'} /> */}
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
-};
-
-export default LandingPage;
+}

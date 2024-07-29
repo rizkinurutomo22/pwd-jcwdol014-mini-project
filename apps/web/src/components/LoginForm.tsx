@@ -34,10 +34,15 @@ const LoginForm = () => {
           values,
         );
 
-        deleteCookie('token');
-        await setCookies('token', response.data.token);
+        if (response.data.token) {
+          deleteCookie('token');
+          const token = response.data.token;
+          setCookies('token', token);
 
-        router.push('/event-dashboard');
+          router.push('/event-management');
+        } else {
+          throw new Error('No token received');
+        }
       } catch (err) {
         setError('Login failed. Please check your credentials.');
       }
@@ -84,7 +89,7 @@ const LoginForm = () => {
       <div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded-md shadow-md hover:bg-blue-600"
+          className="w-full bg-purple-600 py-2 rounded-md shadow-md hbg-purple-600 px-6 text-white transition duration-150 ease-in-out hover:scale-105   hover:bg-purple-500"
         >
           Login
         </button>

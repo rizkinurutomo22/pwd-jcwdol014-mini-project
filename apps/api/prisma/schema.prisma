@@ -28,6 +28,7 @@ model User {
   referralsReceived Referral[] @relation("ReferralsReceived")
   purchases         Purchase[] @relation("UserPurchases")
   attendees         Attendee[] @relation("UserAttendees")
+  events            Event[]    @relation("UserEvents")
 
   @@map("users")
 }
@@ -73,7 +74,9 @@ model Event {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  organizerId Int
 
+  organizer   User       @relation("UserEvents", fields: [organizerId], references: [id])
   purchases   Purchase[] @relation("EventPurchases")
   attendees   Attendee[] @relation("EventAttendees")
 
@@ -107,4 +110,33 @@ model Attendee {
   purchase  Purchase @relation(fields: [purchaseId], references: [id])
 
   @@map("attendees")
+}
+
+model Promo {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  event_name    String
+  org_id        Int
+  org_name      String
+  referal_code  String
+  discout       Int
+  max_uses      Int      @default(1)
+  remaining     Int
+  valid_until   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("promos")
+}
+
+model Review {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  reviewed_by   Int
+  rating        Int
+  review        String
+  suggestions   String
+  createdAt     DateTime @default(now())
+
+  @@map("reviews")
 }

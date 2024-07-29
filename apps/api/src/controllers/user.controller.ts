@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
 
-export async function getAllUser(req: Request, res: Response) {
+export async function getUserById(req: Request, res: Response) {
   try {
-    const user = await prisma.user.findMany();
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+    });
 
     return res.status(200).json({ message: 'Success', data: user });
   } catch (err) {
