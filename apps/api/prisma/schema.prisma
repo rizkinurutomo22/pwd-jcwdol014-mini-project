@@ -10,12 +10,133 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sample {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id                Int        @id @default(autoincrement())
+  username          String
+  email             String     @unique
+  password          String
+  role              String     @default("user")
+  referralCode      String     @unique
+  referredById      Int?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  referredBy        User?      @relation(name: "UserReferredBy", fields: [referredById], references: [id])
+  referrals         User[]     @relation("UserReferredBy")
+  discount          Discount?  @relation("DiscountToUser")  
+  referralsSent     Referral[] @relation("ReferralsSent")
+  referralsReceived Referral[] @relation("ReferralsReceived")
+  purchases         Purchase[] @relation("UserPurchases")
+  attendees         Attendee[] @relation("UserAttendees")
+  events            Event[]    @relation("UserEvents")
 
-  @@map("samples") // if you want to use snake_case format
+  @@map("users")
+}
+
+model Referral {
+  id              Int       @id @default(autoincrement())
+  referrerId      Int
+  referredUserId  Int
+  referralCode    String
+  points          Int       @default(0)
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime
+
+  referrer        User      @relation(name: "ReferralsSent", fields: [referrerId], references: [id])
+  referredUser    User      @relation(name: "ReferralsReceived", fields: [referredUserId], references: [id])
+
+  @@map("referrals")
+}
+
+model Discount {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique
+  discount        Int       @default(0)
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime
+
+  user            User      @relation(name: "DiscountToUser", fields: [userId], references: [id])
+
+  @@map("discounts")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String   @default("free")
+  price       Int      @default(0)
+  seat        Int      @default(10)
+  premiere    Boolean  @default(false)
+  location    String
+  category    String
+  dateTime    DateTime
+  thumbnail   String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  organizerId Int
+
+  organizer   User       @relation("UserEvents", fields: [organizerId], references: [id])
+  purchases   Purchase[] @relation("EventPurchases")
+  attendees   Attendee[] @relation("EventAttendees")
+
+  @@map("events")
+}
+
+model Purchase {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  eventId      Int
+  totalTickets Int       @default(0)
+  totalPrice   Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation("UserPurchases", fields: [userId], references: [id])
+  event        Event     @relation("EventPurchases", fields: [eventId], references: [id])
+  attendees    Attendee[]
+
+  @@map("purchases")
+}
+
+model Attendee {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  eventId    Int
+  purchaseId Int
+  createdAt  DateTime @default(now())
+
+  user      User     @relation("UserAttendees", fields: [userId], references: [id])
+  event     Event    @relation("EventAttendees", fields: [eventId], references: [id])
+  purchase  Purchase @relation(fields: [purchaseId], references: [id])
+
+  @@map("attendees")
+}
+
+model Promo {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  event_name    String
+  org_id        Int
+  org_name      String
+  referal_code  String
+  discout       Int
+  max_uses      Int      @default(1)
+  remaining     Int
+  valid_until   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("promos")
+}
+
+model Review {
+  id            Int      @id @default(autoincrement())
+  event_id      Int
+  reviewed_by   Int
+  rating        Int
+  review        String
+  suggestions   String
+  createdAt     DateTime @default(now())
+
+  @@map("reviews")
 }
